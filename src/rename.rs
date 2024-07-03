@@ -15,6 +15,7 @@ use crate::util::choose;
 pub struct RenameProposal {
     src: PathBuf,
     dst: PathBuf,
+    path: PathBuf,
     action: RenameAction,
 }
 
@@ -67,14 +68,18 @@ impl RenameProposal {
                 Regex::new(r"[\x00/:]",).unwrap();
         }
         let name = RE_BAD_PATH_CHARS.replace_all(dst_name, "_");
+        let re = Regex::new(r"\.[A-Za-z0-9]*$").unwrap();
+        let folder = re.replace_all(&*name, "");
 
-        RenameProposal { src, dst: dst_parent.join(&*name), action }
+        RenameProposal { src, dst: dst_parent.join(&*folder).join(&*name), path:dst_parent.join(&*folder), action }
     }
 
     /// Execute this proposal according to `RenameAction`.
     pub fn rename(&self) -> anyhow::Result<()> {
         match self.action {
             RenameAction::Rename => {
+                fs::create_dir_all(&self.path)?;
+
                 fs::rename(&self.src, &self.dst).map_err(|e| {
                     anyhow::anyhow!(
                         "error renaming '{}' to '{}': {}",
