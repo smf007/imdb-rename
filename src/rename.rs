@@ -64,7 +64,7 @@ impl RenameProposal {
     ) -> RenameProposal {
         lazy_static! {
             static ref RE_BAD_PATH_CHARS: Regex =
-                Regex::new(r"[\x00/]",).unwrap();
+                Regex::new(r"[\x00/:]",).unwrap();
         }
         let name = RE_BAD_PATH_CHARS.replace_all(dst_name, "_");
 
